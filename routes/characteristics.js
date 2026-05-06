@@ -5,7 +5,7 @@ const { authenticateToken, requireRole } = require('../middleware/auth');
 const { analyzeMultipleReviews, generateCharacteristic } = require('../ai/nlp');
 
 // POST /api/characteristics/generate — генерация характеристики ИИ
-router.post('/generate', authenticateToken, requireRole('admin'), (req, res) => {
+router.post('/generate', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { student_id, practice_id, template_name } = req.body;
     if (!student_id || !practice_id) {
@@ -42,10 +42,10 @@ router.post('/generate', authenticateToken, requireRole('admin'), (req, res) => 
 
     // Анализ отзывов
     const reviews = db.prepare('SELECT * FROM reviews WHERE student_id = ? AND practice_id = ?').all(student_id, practice_id);
-    const reviewsAnalysis = analyzeMultipleReviews(reviews);
+    const reviewsAnalysis = await analyzeMultipleReviews(reviews);
 
     // Генерация характеристики
-    const text = generateCharacteristic({
+    const text = await generateCharacteristic({
       studentName: student.full_name,
       organization: practice.partner_name,
       discipline: practice.discipline,

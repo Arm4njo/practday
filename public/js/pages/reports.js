@@ -86,6 +86,9 @@ const ReportsPage = {
             ${data.report.length === 0 ? '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary)">Нет данных</td></tr>' : ''}
           </tbody>
         </table></div>
+        <div style="margin-top:16px;">
+          <button class="btn btn-sm btn-info" onclick="ReportsPage.exportCSV('attendance')"><i class="fas fa-file-csv"></i> Экспорт в CSV (Excel)</button>
+        </div>
       `;
     } catch(err) { App.showToast(err.message, 'error'); }
   },
@@ -114,7 +117,37 @@ const ReportsPage = {
             ${data.report.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary)">Нет данных</td></tr>' : ''}
           </tbody>
         </table></div>
+        <div style="margin-top:16px;">
+          <button class="btn btn-sm btn-info" onclick="ReportsPage.exportCSV('progress')"><i class="fas fa-file-csv"></i> Экспорт в CSV (Excel)</button>
+        </div>
       `;
     } catch(err) { App.showToast(err.message, 'error'); }
+  },
+
+  exportCSV(type) {
+    const table = document.querySelector('#reportDetailArea table');
+    if (!table) return;
+    
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = [], cols = rows[i].querySelectorAll('td, th');
+        for (let j = 0; j < cols.length; j++) 
+            row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
+        csv.push(row.join(';'));
+    }
+
+    const csvContent = "\uFEFF" + csv.join("\n"); // Add BOM for Excel UTF-8
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Отчет_${type}_${new Date().toLocaleDateString()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    App.showToast('Экспорт завершён', 'success');
   }
 };

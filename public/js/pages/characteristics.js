@@ -124,12 +124,18 @@ const CharPage = {
         <h2 style="text-align:center;margin-bottom:30px;">ХАРАКТЕРИСТИКА</h2>
         <h3 style="text-align:center;margin-bottom:30px;">Студент: ${studentName}</h3>
         <div style="line-height:1.6;font-size:14px;white-space:pre-wrap;">${textNode}</div>
-        <div style="margin-top:60px;border-top:2px solid #ccc;padding-top:20px;">
-          <p><strong>ДОКУМЕНТ ПОДПИСАН ЭЛЕКТРОННОЙ ЦИФРОВОЙ ПОДПИСЬЮ (ЭЦП)</strong></p>
-          <p>Сертификат: УЦ ГО ГОСУДАРСТВЕННАЯ КОРПОРАЦИЯ "ПРАВИТЕЛЬСТВО ДЛЯ ГРАЖДАН"</p>
-          <p>Владелец: Администрация Колледжа</p>
-          <p>Действителен: до 31.12.2026</p>
-          <p>Дата подписания: ${new Date().toLocaleDateString('ru-RU')}</p>
+        
+        <div style="margin-top:60px; padding:20px; border:2px double #2c3e50; border-radius:10px; background:#f9f9f9; display:flex; gap:20px; align-items:center;">
+          <div style="width:80px; height:80px; background:#ddd; display:flex; align-items:center; justify-content:center; border:1px solid #999; font-size:10px; text-align:center;">QR CODE SIMULATION</div>
+          <div>
+            <div style="font-weight:700; color:#2c3e50; margin-bottom:5px;">ДОКУМЕНТ ПОДПИСАН ЭЦП</div>
+            <div style="font-size:11px; line-height:1.4;">
+              <div>Сертификат: a7d9e0f1a200b3e7a1c902f8d4e5a6b7</div>
+              <div>Владелец: ГК "ПРАВИТЕЛЬСТВО ДЛЯ ГРАЖДАН" (УЦ ГО)</div>
+              <div>Подписант: Дирекция колледжа PractDay AI</div>
+              <div>Дата: ${new Date().toLocaleString('ru-RU')}</div>
+            </div>
+          </div>
         </div>
       </div>
     `;

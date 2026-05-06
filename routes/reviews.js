@@ -2,24 +2,26 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../database');
 const { authenticateToken, requireRole } = require('../middleware/auth');
-const { analyzeSentiment, extractAspects, analyzeMultipleReviews } = require('../ai/nlp');
+const { analyzeSingleReview, analyzeMultipleReviews } = require('../ai/nlp');
 
 // POST /api/reviews — партнёр оставляет отзыв
-router.post('/', authenticateToken, requireRole('partner'), (req, res) => {
+router.post('/', authenticateToken, requireRole('partner'), async (req, res) => {
   try {
     const { student_id, practice_id, review_text } = req.body;
     if (!student_id || !practice_id || !review_text) {
       return res.status(400).json({ error: 'Заполните все поля: студент, практика, текст отзыва' });
     }
 
-    // Анализ тональности
-    const sentiment = analyzeSentiment(review_text);
-    const aspects = extractAspects(review_text);
+    // Анализ тональности через Gemini
+    const resultAI = await analyzeSingleReview(review_text);
+    const sentiment_score = resultAI.score;
+    const sentiment_label = resultAI.label;
+    const aspects = resultAI.aspects || [];
 
     const result = db.prepare(`
       INSERT INTO reviews (student_id, practice_id, partner_user_id, review_text, sentiment_score, sentiment_label, key_aspects, analyzed_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `).run(student_id, practice_id, req.user.id, review_text, sentiment.score, sentiment.label, JSON.stringify(aspects));
+    `).run(student_id, practice_id, req.user.id, review_text, sentiment_score, sentiment_label, JSON.stringify(aspects));
 
     // Уведомление студенту
     db.prepare('INSERT INTO notifications (user_id, type, title, message) VALUES (?, ?, ?, ?)')
@@ -67,9 +69,9 @@ router.get('/', authenticateToken, (req, res) => {
 });
 
 // GET /api/reviews/analysis/:student_id/:practice_id — сводный анализ отзывов
-router.get('/analysis/:student_id/:practice_id', authenticateToken, (req, res) => {
+router.get('/analysis/:student_id/:practice_id', authenticateToken, async (req, res) => {
   const reviews = db.prepare('SELECT * FROM reviews WHERE student_id = ? AND practice_id = ?').all(req.params.student_id, req.params.practice_id);
-  const analysis = analyzeMultipleReviews(reviews);
+  const analysis = await analyzeMultipleReviews(reviews);
   res.json({ analysis });
 });
 

@@ -230,47 +230,8 @@ function initDatabase() {
     console.log('Создан администратор по умолчанию: admin@practday.kz / admin123');
   }
 
-  // Демо-данные шаблонов дневника
-  const templatesExist = db.prepare('SELECT id FROM diary_templates LIMIT 1').get();
-  if (!templatesExist) {
-    const templates = [
-      { discipline: 'Программирование', name: 'Дневник практики по программированию', fields: JSON.stringify(['Дата','Описание работ','Языки программирования','Навыки','Замечания']), min_hours: 120, competencies: 'Разработка ПО,Тестирование,Работа с БД,Версионный контроль' },
-      { discipline: 'Сварочные работы', name: 'Дневник практики по сварке', fields: JSON.stringify(['Дата','Описание работ','Тип сварки','Навыки','Замечания']), min_hours: 160, competencies: 'Ручная дуговая сварка,Газовая сварка,Контроль качества,Техника безопасности' },
-      { discipline: 'Экономика', name: 'Дневник практики по экономике', fields: JSON.stringify(['Дата','Описание работ','Документация','Навыки','Замечания']), min_hours: 100, competencies: 'Бухгалтерский учёт,Финансовый анализ,Делопроизводство,Работа с 1С' },
-    ];
-    const stmt = db.prepare('INSERT INTO diary_templates (discipline, template_name, fields, min_hours, required_competencies) VALUES (?,?,?,?,?)');
-    for (const t of templates) {
-      stmt.run(t.discipline, t.name, t.fields, t.min_hours, t.competencies);
-    }
-  }
-
-  // Демо-данные шаблонов характеристик
-  const charTemplatesExist = db.prepare('SELECT id FROM characteristic_templates LIMIT 1').get();
-  if (!charTemplatesExist) {
-    const charTemplates = [
-      { name: 'Оценка профессиональных навыков', template: 'Студент {full_name} проходил(а) практику в {organization} по дисциплине "{discipline}" в период с {start_date} по {end_date}. За время практики {he_she} {skills_summary}. {attendance_summary}. {reviews_summary}. Общая оценка: {overall_score}.', fields: 'full_name,organization,discipline,start_date,end_date,skills_summary,attendance_summary,reviews_summary,overall_score' },
-      { name: 'Личностные качества', template: 'Характеристика студента {full_name}, проходившего(ей) практику в {organization}. {personality_traits}. {initiative_summary}. {recommendation}.', fields: 'full_name,organization,personality_traits,initiative_summary,recommendation' },
-    ];
-    const stmt = db.prepare('INSERT INTO characteristic_templates (name, template_text, fields) VALUES (?,?,?)');
-    for (const t of charTemplates) {
-      stmt.run(t.name, t.template, t.fields);
-    }
-  }
-
-  // Демо-партнёры
-  const partnersExist = db.prepare('SELECT id FROM partners LIMIT 1').get();
-  if (!partnersExist) {
-    const demoPartners = [
-      { name: 'ТОО "КазТехСервис"', address: 'ул. Ломова 45', city: 'Павлодар', contact: 'Иванов И.И.', email: 'info@kaztechservice.kz', phone: '+77012345678', desc: 'IT-компания, разработка программного обеспечения', lat: 52.2873, lng: 76.9674 },
-      { name: 'АО "ПавлодарЭнерго"', address: 'ул. Академика Сатпаева 50', city: 'Павлодар', contact: 'Петров П.П.', email: 'hr@pavlodarenergo.kz', phone: '+77019876543', desc: 'Энергетическая компания', lat: 52.2850, lng: 76.9550 },
-      { name: 'ИП "СтройМастер"', address: 'ул. Кутузова 15', city: 'Павлодар', contact: 'Сидоров С.С.', email: 'stroym@mail.kz', phone: '+77015556677', desc: 'Строительная компания, сварочные работы', lat: 52.2900, lng: 76.9700 },
-      { name: 'ТОО "ФинансГрупп"', address: 'ул. 1 Мая 25', city: 'Экибастуз', contact: 'Нурланова А.Б.', email: 'finance@finansgrupp.kz', phone: '+77018889900', desc: 'Финансовая консалтинговая компания', lat: 52.0470, lng: 75.3220 },
-    ];
-    const stmt = db.prepare('INSERT INTO partners (name, address, city, contact_person, contact_email, contact_phone, description, latitude, longitude) VALUES (?,?,?,?,?,?,?,?,?)');
-    for (const p of demoPartners) {
-      stmt.run(p.name, p.address, p.city, p.contact, p.email, p.phone, p.desc, p.lat, p.lng);
-    }
-  }
+  console.log('База данных инициализирована.');
+}
 
   console.log('База данных инициализирована.');
 }

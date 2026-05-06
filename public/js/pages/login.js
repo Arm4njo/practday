@@ -23,11 +23,11 @@ Router.register('/login', async () => {
         <div id="loginForm">
           <div class="form-group">
             <label class="form-label">${I18N.t('email')}</label>
-            <input type="email" class="form-input" id="loginEmail" placeholder="admin@practday.kz" value="admin@practday.kz">
+            <input type="email" class="form-input" id="loginEmail" placeholder="admin@practday.kz">
           </div>
           <div class="form-group">
             <label class="form-label">${I18N.t('password')}</label>
-            <input type="password" class="form-input" id="loginPassword" placeholder="Пароль" value="admin123">
+            <input type="password" class="form-input" id="loginPassword" placeholder="${I18N.t('password')}">
           </div>
           <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;" onclick="LoginPage.doLogin()">
             <i class="fas fa-sign-in-alt"></i> ${I18N.t('login')}
@@ -35,11 +35,6 @@ Router.register('/login', async () => {
           <p style="text-align:center;margin-top:16px;">
             <a href="#" onclick="LoginPage.showForgotPassword();return false;" style="font-size:0.85rem;color:var(--text-secondary);">${I18N.t('forgot_password')}</a>
           </p>
-          <div style="margin-top:20px;padding:16px;background:var(--info-bg);border-radius:8px;font-size:0.78rem;color:var(--text-secondary);">
-            <strong>Демо-аккаунт:</strong><br>
-            Email: admin@practday.kz<br>
-            Пароль: admin123
-          </div>
         </div>
 
         <div id="registerForm" style="display:none;">

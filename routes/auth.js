@@ -61,7 +61,7 @@ router.post('/login', (req, res) => {
     res.json({
       message: 'Вход успешен',
       token,
-      user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role, language: user.language }
+      user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role, language: user.language, is_verified: user.is_verified }
     });
   } catch (err) {
     res.status(500).json({ error: 'Ошибка сервера: ' + err.message });
@@ -70,7 +70,7 @@ router.post('/login', (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', authenticateToken, (req, res) => {
-  const user = db.prepare('SELECT id, full_name, email, phone, role, group_name, specialty, organization, language, created_at FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, full_name, email, phone, role, group_name, specialty, organization, language, is_verified, created_at FROM users WHERE id = ?').get(req.user.id);
   res.json({ user });
 });
 
@@ -153,6 +153,13 @@ router.post('/import-students', authenticateToken, requireRole('admin'), (req, r
   } catch (err) {
     res.status(500).json({ error: 'Ошибка импорта: ' + err.message });
   }
+});
+
+// PUT /api/auth/users/:id/verify (admin only)
+router.put('/users/:id/verify', authenticateToken, requireRole('admin'), (req, res) => {
+  const { is_verified } = req.body;
+  db.prepare('UPDATE users SET is_verified = ? WHERE id = ?').run(is_verified ? 1 : 0, req.params.id);
+  res.json({ message: 'Статус верификации обновлён' });
 });
 
 module.exports = router;

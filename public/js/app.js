@@ -78,6 +78,21 @@ const App = {
     document.querySelector('.top-bar').style.display = 'flex';
     Auth.updateUI();
     this.updateNav();
+
+    // Verification Banner
+    const bannerId = 'verificationBanner';
+    let banner = document.getElementById(bannerId);
+    if (Auth.isLoggedIn() && !Auth.user.is_verified) {
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = bannerId;
+        banner.style = 'background:var(--warning-bg);color:var(--warning);padding:10px 20px;font-size:0.85rem;border-bottom:1px solid var(--warning);display:flex;align-items:center;gap:10px;';
+        banner.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Ваш аккаунт ожидает верификации администратором. Некоторые функции могут быть ограничены.`;
+        document.querySelector('.main-content').prepend(banner);
+      }
+    } else if (banner) {
+      banner.remove();
+    }
   },
 
   updateNav() {
@@ -98,6 +113,12 @@ const App = {
       html += this.createNavItem('/attendance', 'fas fa-map-marker-alt', 'nav_attendance');
       html += this.createNavItem('/diary', 'fas fa-book', 'nav_diary');
     }
+    if (role === 'partner') {
+      html += this.createNavItem('/partner/students', 'fas fa-user-graduate', 'nav_my_students');
+    }
+    if (role === 'student') {
+      html += this.createNavItem('/student/practice', 'fas fa-rocket', 'nav_my_practice');
+    }
 
     // Секция "ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ"
     html += `<div class="nav-section-title" data-i18n="nav_section_ai">${I18N.t('nav_section_ai')}</div>`;
@@ -108,11 +129,11 @@ const App = {
     if (role === 'admin') {
       html += `<div class="nav-section-title" data-i18n="nav_section_admin">${I18N.t('nav_section_admin')}</div>`;
       html += this.createNavItem('/users', 'fas fa-users', 'nav_users');
-      html += this.createNavItem('/reports', 'fas fa-chart-pie', 'nav_reports');
+      html += this.createNavItem('/reports', 'fas fa-chart-line', 'nav_reports');
     }
 
     // Общее
-    html += `<div class="nav-section-title">СВЯЗЬ</div>`;
+    html += `<div class="nav-section-title" data-i18n="nav_section_other">${I18N.t('nav_section_other') || 'СВЯЗЬ'}</div>`;
     html += this.createNavItem('/chat', 'fas fa-comments', 'nav_chat');
 
     nav.innerHTML = html;

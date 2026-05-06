@@ -1,9 +1,12 @@
 // pages/reviews.js — Partner reviews with AI analysis
-Router.register('/reviews', async () => {
+Router.register('/reviews', async (params) => {
   App.restoreLayout();
   document.getElementById('pageTitle').textContent = I18N.t('nav_reviews');
   const role = Auth.getRole();
   const content = document.getElementById('contentArea');
+  
+  const studentId = params.student_id || new URLSearchParams(window.location.hash.split('?')[1]).get('student_id');
+  const practiceId = params.practice_id || new URLSearchParams(window.location.hash.split('?')[1]).get('practice_id');
 
   try {
     const data = await API.get('/reviews');
@@ -13,8 +16,8 @@ Router.register('/reviews', async () => {
         <div class="card" style="margin-bottom:20px;">
           <div class="card-header"><h3 class="card-title"><i class="fas fa-star"></i> ${I18N.t('add_review')}</h3></div>
           <div class="form-row">
-            <div class="form-group"><label class="form-label">ID студента</label><input type="number" class="form-input" id="reviewStudentId"></div>
-            <div class="form-group"><label class="form-label">ID практики</label><input type="number" class="form-input" id="reviewPracticeId"></div>
+            <div class="form-group"><label class="form-label">ID студента</label><input type="number" class="form-input" id="reviewStudentId" value="${studentId || ''}"></div>
+            <div class="form-group"><label class="form-label">ID практики</label><input type="number" class="form-input" id="reviewPracticeId" value="${practiceId || ''}"></div>
           </div>
           <div class="form-group"><label class="form-label">${I18N.t('review_text')}</label>
             <textarea class="form-textarea" id="reviewText" placeholder="Напишите отзыв о студенте. Например: Ответственный студент, быстро обучается, демонстрирует высокий уровень дисциплины и инициативности..."></textarea>

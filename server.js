@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -23,6 +24,7 @@ app.use('/api/diary', require('./routes/diary'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/characteristics', require('./routes/characteristics'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/chat', require('./routes/chat'));
 
 // SPA — все остальные маршруты отдают index.html
 app.get('*', (req, res) => {

@@ -153,31 +153,46 @@ const DashboardPage = {
 
   async renderPartner() {
     const content = document.getElementById('contentArea');
-    content.innerHTML = `
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div>
-          <div><div class="stat-value">—</div><div class="stat-label">Студенты на практике</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon green"><i class="fas fa-check"></i></div>
-          <div><div class="stat-value">—</div><div class="stat-label">Ожидает подтверждения</div></div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-        <div class="card">
-          <h3 class="card-title"><i class="fas fa-bolt"></i> Быстрые действия</h3>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
-            <button class="btn btn-primary" onclick="Router.navigate('/diary')"><i class="fas fa-book"></i> Проверить дневники</button>
-            <button class="btn btn-secondary" onclick="Router.navigate('/reviews')"><i class="fas fa-star"></i> Оставить отзыв</button>
-            <button class="btn btn-secondary" onclick="Router.navigate('/attendance')"><i class="fas fa-clipboard-check"></i> Подтвердить посещаемость</button>
+    try {
+      const stats = await API.get('/reports/statistics');
+      const s = stats.statistics;
+
+      content.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div>
+            <div><div class="stat-value">${s.assigned_students}</div><div class="stat-label">Студенты на практике</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-check"></i></div>
+            <div><div class="stat-value">${s.pending_diary + s.pending_attendance}</div><div class="stat-label">Ожидает подтверждения</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon yellow"><i class="fas fa-book"></i></div>
+            <div><div class="stat-value">${s.pending_diary}</div><div class="stat-label">Дневники</div></div>
           </div>
         </div>
-        <div class="card">
-          <h3 class="card-title"><i class="fas fa-info-circle"></i> Информация</h3>
-          <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;">Как социальный партнёр, вы можете подтверждать присутствие студентов, проверять записи в дневнике и оставлять отзывы для формирования характеристик.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-bolt"></i> Быстрые действия</h3>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+              <button class="btn btn-primary" onclick="Router.navigate('/diary')"><i class="fas fa-book"></i> Проверить дневники</button>
+              <button class="btn btn-secondary" onclick="Router.navigate('/reviews')"><i class="fas fa-star"></i> Оставить отзыв</button>
+              <button class="btn btn-secondary" onclick="Router.navigate('/attendance')"><i class="fas fa-clipboard-check"></i> Подтвердить посещаемость</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-info-circle"></i> Информация</h3>
+            </div>
+            <p style="margin-top:12px;color:var(--text-secondary);line-height:1.6;">Как социальный партнёр, вы можете подтверждать присутствие студентов, проверять записи в дневнике и оставлять отзывы для формирования характеристик.</p>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    } catch(err) {
+      content.innerHTML = `<div class="empty-state"><i class="fas fa-briefcase"></i><h3>Панель партнёра</h3><p>Дождитесь назначения студентов на вашу практику</p></div>`;
+    }
   }
 };

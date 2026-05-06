@@ -29,7 +29,7 @@ Router.register('/users', async () => {
       <div class="card">
         <div class="table-container">
           <table id="usersTable">
-            <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Роль</th><th>Группа</th><th>Организация</th><th>Дата регистрации</th></tr></thead>
+            <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Роль</th><th>Группа</th><th>Организация</th><th>Действия</th><th>Дата регистрации</th></tr></thead>
             <tbody>
               ${data.users.map(u => {
                 const roleLabels = { admin: I18N.t('role_admin'), student: I18N.t('role_student'), partner: I18N.t('role_partner'), guest: I18N.t('role_guest') };
@@ -41,6 +41,16 @@ Router.register('/users', async () => {
                     <td><span class="status status-${u.role === 'admin' ? 'approved' : u.role === 'student' ? 'submitted' : 'confirmed'}">${roleLabels[u.role]}</span></td>
                     <td>${u.group_name || '—'}</td>
                     <td>${u.organization || '—'}</td>
+                    <td>
+                      ${u.role === 'partner' ? `
+                        <button class="btn btn-xs btn-success" title="Создать предприятие в каталоге" onclick="UsersPage.makeEnterprise(${u.id})">
+                          <i class="fas fa-building"></i>
+                        </button>
+                      ` : ''}
+                      <button class="btn btn-xs ${u.is_verified ? 'btn-secondary' : 'btn-primary'}" title="${u.is_verified ? 'Отменить верификацию' : 'Верифицировать'}" onclick="UsersPage.toggleVerify(${u.id}, ${u.is_verified})">
+                        <i class="fas ${u.is_verified ? 'fa-check-circle' : 'fa-user-check'}"></i>
+                      </button>
+                    </td>
                     <td style="font-size:0.82rem;">${u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU') : '—'}</td>
                   </tr>
                 `;
@@ -93,5 +103,24 @@ const UsersPage = {
     } catch(err) {
       App.showToast('Ошибка: ' + err.message, 'error');
     }
+  },
+
+  async makeEnterprise(userId) {
+    if (!confirm('Создать запись о предприятии в каталоге на основе данных этого пользователя?')) return;
+    try {
+      const result = await API.post('/practices/partners/from-user', { user_id: userId });
+      App.showToast(result.message, 'success');
+      Router.navigate('/practices'); // Переходим в практики, чтобы создать саму практику
+    } catch(err) {
+      App.showToast('Ошибка: ' + err.message, 'error');
+    }
+  },
+
+  async toggleVerify(userId, currentStatus) {
+    try {
+      await API.put(`/auth/users/${userId}/verify`, { is_verified: !currentStatus });
+      App.showToast('Статус верификации обновлён', 'success');
+      Router.handleRoute(); // Refresh
+    } catch(err) { App.showToast(err.message, 'error'); }
   }
 };

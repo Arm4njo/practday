@@ -24,11 +24,12 @@ const Router = {
     }
 
     // Auth check
-    if (!Auth.isLoggedIn() && path !== '/login' && path !== '/register') {
-      this.navigate('/login');
+    const publicRoutes = ['/login', '/register', '/guest'];
+    if (!Auth.isLoggedIn() && !publicRoutes.includes(path)) {
+      this.navigate('/guest');
       return;
     }
-    if (Auth.isLoggedIn() && (path === '/login' || path === '/register')) {
+    if (Auth.isLoggedIn() && (path === '/login' || path === '/register' || path === '/guest')) {
       this.navigate('/dashboard');
       return;
     }

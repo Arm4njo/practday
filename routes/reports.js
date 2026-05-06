@@ -57,42 +57,75 @@ router.get('/progress', authenticateToken, requireRole('admin'), (req, res) => {
 });
 
 // GET /api/reports/statistics — общая статистика
-router.get('/statistics', authenticateToken, requireRole('admin'), (req, res) => {
-  const totalStudents = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'student'").get();
-  const totalPartners = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'partner'").get();
-  const totalPractices = db.prepare('SELECT COUNT(*) as count FROM practices').get();
-  const activePractices = db.prepare("SELECT COUNT(*) as count FROM practices WHERE status = 'active'").get();
-  const totalApplications = db.prepare('SELECT COUNT(*) as count FROM practice_applications').get();
-  const approvedApps = db.prepare("SELECT COUNT(*) as count FROM practice_applications WHERE status = 'approved'").get();
-  const totalDiaryEntries = db.prepare('SELECT COUNT(*) as count FROM diary_entries').get();
-  const totalReviews = db.prepare('SELECT COUNT(*) as count FROM reviews').get();
-  const totalCharacteristics = db.prepare('SELECT COUNT(*) as count FROM characteristics').get();
+router.get('/statistics', authenticateToken, (req, res) => {
+  if (req.user.role === 'admin') {
+    const totalStudents = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'student'").get();
+    const totalPartners = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'partner'").get();
+    const totalPractices = db.prepare('SELECT COUNT(*) as count FROM practices').get();
+    const activePractices = db.prepare("SELECT COUNT(*) as count FROM practices WHERE status = 'active'").get();
+    const totalApplications = db.prepare('SELECT COUNT(*) as count FROM practice_applications').get();
+    const approvedApps = db.prepare("SELECT COUNT(*) as count FROM practice_applications WHERE status = 'approved'").get();
+    const totalDiaryEntries = db.prepare('SELECT COUNT(*) as count FROM diary_entries').get();
+    const totalReviews = db.prepare('SELECT COUNT(*) as count FROM reviews').get();
+    const totalCharacteristics = db.prepare('SELECT COUNT(*) as count FROM characteristics').get();
 
-  // По группам
-  const groupStats = db.prepare(`
-    SELECT u.group_name, COUNT(DISTINCT u.id) as students,
-    COUNT(DISTINCT pa.practice_id) as practices,
-    (SELECT COUNT(*) FROM practice_applications pa2 JOIN users u2 ON pa2.student_id = u2.id WHERE u2.group_name = u.group_name AND pa2.status = 'approved') as approved
-    FROM users u
-    LEFT JOIN practice_applications pa ON pa.student_id = u.id
-    WHERE u.role = 'student' AND u.group_name IS NOT NULL
-    GROUP BY u.group_name
-  `).all();
+    // По группам
+    const groupStats = db.prepare(`
+      SELECT u.group_name, COUNT(DISTINCT u.id) as students,
+      COUNT(DISTINCT pa.practice_id) as practices,
+      (SELECT COUNT(*) FROM practice_applications pa2 JOIN users u2 ON pa2.student_id = u2.id WHERE u2.group_name = u.group_name AND pa2.status = 'approved') as approved
+      FROM users u
+      LEFT JOIN practice_applications pa ON pa.student_id = u.id
+      WHERE u.role = 'student' AND u.group_name IS NOT NULL
+      GROUP BY u.group_name
+    `).all();
 
-  res.json({
-    statistics: {
-      total_students: totalStudents.count,
-      total_partners: totalPartners.count,
-      total_practices: totalPractices.count,
-      active_practices: activePractices.count,
-      total_applications: totalApplications.count,
-      approved_applications: approvedApps.count,
-      total_diary_entries: totalDiaryEntries.count,
-      total_reviews: totalReviews.count,
-      total_characteristics: totalCharacteristics.count,
-      by_groups: groupStats,
-    }
-  });
+    res.json({
+      statistics: {
+        total_students: totalStudents.count,
+        total_partners: totalPartners.count,
+        total_practices: totalPractices.count,
+        active_practices: activePractices.count,
+        total_applications: totalApplications.count,
+        approved_applications: approvedApps.count,
+        total_diary_entries: totalDiaryEntries.count,
+        total_reviews: totalReviews.count,
+        total_characteristics: totalCharacteristics.count,
+        by_groups: groupStats,
+      }
+    });
+  } else if (req.user.role === 'partner') {
+    // Статистика для социального партнёра
+    const assignedStudents = db.prepare(`
+      SELECT COUNT(DISTINCT student_id) as count 
+      FROM practice_applications 
+      WHERE partner_user_id = ? AND status = 'approved'
+    `).get(req.user.id);
+
+    const pendingDiary = db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM diary_entries d
+      JOIN practice_applications pa ON d.student_id = pa.student_id AND d.practice_id = pa.practice_id
+      WHERE pa.partner_user_id = ? AND d.status = 'submitted'
+    `).get(req.user.id);
+
+    const pendingAttendance = db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM attendance a
+      JOIN practice_applications pa ON a.student_id = pa.student_id AND a.practice_id = pa.practice_id
+      WHERE pa.partner_user_id = ? AND a.confirmed_by_partner = 0
+    `).get(req.user.id);
+
+    res.json({
+      statistics: {
+        assigned_students: assignedStudents.count,
+        pending_diary: pendingDiary.count,
+        pending_attendance: pendingAttendance.count
+      }
+    });
+  } else {
+    res.status(403).json({ error: 'Доступ запрещён' });
+  }
 });
 
 // GET /api/reports/notifications — уведомления текущего пользователя

@@ -5,9 +5,13 @@ Router.register('/diary', async (params) => {
   const role = Auth.getRole();
   const content = document.getElementById('contentArea');
   const practiceId = params.practice_id || new URLSearchParams(window.location.hash.split('?')[1]).get('practice_id');
+  const studentId = params.student_id || new URLSearchParams(window.location.hash.split('?')[1]).get('student_id');
 
   try {
-    const query = practiceId ? `?practice_id=${practiceId}` : '';
+    let query = '';
+    if (practiceId) query += (query ? '&' : '?') + `practice_id=${practiceId}`;
+    if (studentId) query += (query ? '&' : '?') + `student_id=${studentId}`;
+    
     const data = await API.get('/diary' + query);
 
     let completenessHTML = '';
@@ -157,13 +161,21 @@ const DiaryPage = {
     el.innerHTML = `
       <div style="padding:40px;font-family:sans-serif;color:#000;">
         <h2 style="text-align:center;margin-bottom:30px;">ЭЛЕКТРОННЫЙ ДНЕВНИК ПРАКТИКИ</h2>
+        <div style="font-size:12px;margin-bottom:20px;">Студент: <strong>${Auth.user.full_name}</strong> | Группа: ${Auth.user.group_name || '—'}</div>
         ${entriesHTML}
         ${entriesHTML === '' ? '<p>Нет записей для экспорта</p>' : ''}
-        <div style="margin-top:60px;border-top:2px solid #ccc;padding-top:20px;">
-          <p><strong>ДОКУМЕНТ ПОДПИСАН ЭЛЕКТРОННОЙ ЦИФРОВОЙ ПОДПИСЬЮ (ЭЦП)</strong></p>
-          <p>Сертификат: УЦ ГО ГОСУДАРСТВЕННАЯ КОРПОРАЦИЯ "ПРАВИТЕЛЬСТВО ДЛЯ ГРАЖДАН"</p>
-          <p>Владелец: Утверждено администрацией колледжа</p>
-          <p>Дата подписания: ${new Date().toLocaleDateString('ru-RU')}</p>
+        
+        <div style="margin-top:60px; padding:20px; border:2px double #2c3e50; border-radius:10px; background:#f9f9f9; display:flex; gap:20px; align-items:center;">
+          <div style="width:80px; height:80px; background:#ddd; display:flex; align-items:center; justify-content:center; border:1px solid #999; font-size:10px; text-align:center;">QR CODE SIMULATION</div>
+          <div>
+            <div style="font-weight:700; color:#2c3e50; margin-bottom:5px;">ДОКУМЕНТ ПОДПИСАН ЭЦП</div>
+            <div style="font-size:11px; line-height:1.4;">
+              <div>Сертификат: 00b3e7a1c902f8d4e5a6b7c8d9e0f1a2</div>
+              <div>Владелец: ГК "ПРАВИТЕЛЬСТВО ДЛЯ ГРАЖДАН" (УЦ ГО)</div>
+              <div>Подписант: Администрация PractDay AI</div>
+              <div>Дата: ${new Date().toLocaleString('ru-RU')}</div>
+            </div>
+          </div>
         </div>
       </div>
     `;

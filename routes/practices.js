@@ -110,9 +110,15 @@ router.get('/applications/my', authenticateToken, requireRole('student'), (req, 
   res.json({ applications: apps });
 });
 
-// GET /api/practices/applications/all — все заявки (admin)
-router.get('/applications/all', authenticateToken, requireRole('admin'), (req, res) => {
+// GET /api/practices/applications/all — все заявки (admin/partner)
+router.get('/applications/all', authenticateToken, (req, res) => {
   const { status } = req.query;
+  const role = req.user.role;
+  
+  if (role !== 'admin' && role !== 'partner') {
+    return res.status(403).json({ error: 'Доступ запрещён' });
+  }
+
   let query = `
     SELECT pa.*, p.title as practice_title, p.discipline, u.full_name as student_name, u.group_name,
     pr.name as partner_name
@@ -123,6 +129,12 @@ router.get('/applications/all', authenticateToken, requireRole('admin'), (req, r
     WHERE 1=1
   `;
   const params = [];
+  
+  if (role === 'partner') {
+    query += ' AND pa.partner_user_id = ?';
+    params.push(req.user.id);
+  }
+  
   if (status) { query += ' AND pa.status = ?'; params.push(status); }
   query += ' ORDER BY pa.applied_at DESC';
 
@@ -180,6 +192,24 @@ router.post('/partners', authenticateToken, requireRole('admin'), (req, res) => 
 
   const partner = db.prepare('SELECT * FROM partners WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json({ message: 'Партнёр добавлен', partner });
+});
+
+// POST /api/practices/partners/from-user (admin) — создание партнёра из пользователя
+router.post('/partners/from-user', authenticateToken, requireRole('admin'), (req, res) => {
+  const { user_id } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE id = ? AND role = ?').get(user_id, 'partner');
+  if (!user) return res.status(404).json({ error: 'Пользователь не найден или не является партнёром' });
+
+  // Проверяем, не создан ли уже такой партнёр
+  const exists = db.prepare('SELECT id FROM partners WHERE name = ?').get(user.organization || user.full_name);
+  if (exists) return res.status(400).json({ error: 'Организация с таким названием уже существует' });
+
+  const result = db.prepare(`
+    INSERT INTO partners (name, contact_person, contact_email, contact_phone, created_by)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(user.organization || user.full_name, user.full_name, user.email, user.phone, req.user.id);
+
+  res.status(201).json({ message: 'Предприятие успешно создано в каталоге', partner_id: result.lastInsertRowid });
 });
 
 module.exports = router;
